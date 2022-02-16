@@ -1,15 +1,15 @@
 import DataLoader from "dataloader";
-import _ from "lodash";
+import { Media } from "../models/Media";
 import { MediaModel } from "../models";
 
-const batchMedias = async (ids: any): Promise<any> => {
-  //ids = [1, 2, 3]
+const batchMedias = async (ids: readonly string[]) => {
   const medias = await MediaModel.find({ _id: { $in: ids } });
-  // [{uploadedBy: 2}, {uploadedBy: 1}, {uploadedBy: 3}]
-  const mediaGrouped = _.groupBy(medias, "uploadedBy");
-  // [1: {...media}, 2: {...media}, 3: {...media}]
+  const lookup: Record<string, Media> = medias.reduce((acc, media) => {
+    acc[media._id.toString()] = media;
+    return acc;
+  }, {} as Record<string, Media>);
 
-  return ids.map((id: any) => mediaGrouped[id]);
+  return ids.map((i) => lookup[i] || null);
 };
 
 export const createMediaLoader = () => new DataLoader(batchMedias);

@@ -31,7 +31,7 @@ export class User {
   @prop({ _id: false })
   public name: UserName;
 
-  @Field(() => [Media])
+  @Field(() => [Media], { nullable: true, defaultValue: [] })
   @prop({
     ref: () => Media,
     type: [mongoose.Schema.Types.ObjectId],

@@ -5,8 +5,6 @@ import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-co
 import { ApolloServer } from "apollo-server-express";
 import express from "express";
 import { buildSchema } from "type-graphql";
-import { User, UserName } from "./models/User";
-import { MediaModel, UserModel } from "./models";
 import { connectDB } from "./utils/connectDB";
 import { createMediaLoader } from "./loaders/mediaLoader";
 import { mongoose } from "@typegoose/typegoose";
@@ -63,32 +61,32 @@ const main = async () => {
   */
 };
 
-const createUser = (name: string[]) => {
-  const user = new UserModel({
-    name: {
-      firstName: name[0],
-      lastName: name[1],
-    } as UserName,
-  });
-  return user;
-};
+// const createUser = (name: string[]) => {
+//   const user = new UserModel({
+//     name: {
+//       firstName: name[0],
+//       lastName: name[1],
+//     } as UserName,
+//   });
+//   return user;
+// };
 
-const createMedia = (name: string[], user: User) => {
-  const media = new MediaModel({
-    title: {
-      romanji: name[0],
-      english: name[1],
-      native: name[2],
-      userPreferred: name[3],
-    },
-    releasedDate: {
-      year: new Date().getFullYear(),
-      month: new Date().getUTCMonth(),
-      day: new Date().getUTCDay(),
-    },
-    uploadedBy: user,
-  });
-  return media;
-};
+// const createMedia = (name: string[], user: User) => {
+//   const media = new MediaModel({
+//     title: {
+//       romanji: name[0],
+//       english: name[1],
+//       native: name[2],
+//       userPreferred: name[3],
+//     },
+//     releasedDate: {
+//       year: new Date().getFullYear(),
+//       month: new Date().getUTCMonth(),
+//       day: new Date().getUTCDay(),
+//     },
+//     uploadedBy: user,
+//   });
+//   return media;
+// };
 
 main().catch(console.error);
