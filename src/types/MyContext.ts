@@ -1,10 +1,10 @@
 import DataLoader from "dataloader";
-import { User } from "src/models/User";
 import { Media } from "../models/Media";
+import { Studio } from "../models/Studio";
 
 export interface MyContext {
   req: Request;
   res: Response;
+  studioLoader: DataLoader<string, Studio, string>;
   mediaLoader: DataLoader<string, Media, string>;
-  userLoader: DataLoader<string, User, string>;
 }

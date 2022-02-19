@@ -1,14 +1,17 @@
-import "reflect-metadata";
-import "colors";
-import "dotenv/config";
+import { mongoose } from "@typegoose/typegoose";
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 import { ApolloServer } from "apollo-server-express";
+import "colors";
+import "dotenv/config";
 import express from "express";
+import "reflect-metadata";
 import { buildSchema } from "type-graphql";
-import { connectDB } from "./utils/connectDB";
 import { createMediaLoader } from "./loaders/mediaLoader";
-import { mongoose } from "@typegoose/typegoose";
-import { createUserLoader } from "./loaders/userLoader";
+import { createStudioLoader } from "./loaders/studioLoader";
+import { MediaModel, StudioModel } from "./models";
+import { MediaEdge } from "./structures/MediaEdge";
+import { StudioEdge } from "./structures/StudioEdge";
+import { connectDB } from "./utils/connectDB";
 
 const main = async () => {
   await connectDB();
@@ -24,8 +27,8 @@ const main = async () => {
     context: ({ req, res }) => ({
       req,
       res,
+      studioLoader: createStudioLoader(),
       mediaLoader: createMediaLoader(),
-      userLoader: createUserLoader(),
     }),
     plugins: [ApolloServerPluginLandingPageGraphQLPlayground],
   });
@@ -36,57 +39,64 @@ const main = async () => {
     cors: false,
   });
 
+  // await insertMediaWithRelation();
+
   app.listen(parseInt(process.env.PORT!), () => {
     console.log(
       ` > Server is up and running at port ${process.env
         .PORT!} http://localhost:${process.env.PORT}/graphql`.bgGreen.black
     );
   });
-
-  /*
-  const user = createUser(["Ashish", "Neupane"]);
-  const media = createMedia(
-    [
-      "Shingeki no Kyojin",
-      "Attack on Titan",
-      "Chixuixau",
-      "Shingeki no Kyojin",
-    ],
-    user
-  );
-  user.medias.push(media);
-
-  await user.save();
-  await media.save();
-  */
 };
 
-// const createUser = (name: string[]) => {
-//   const user = new UserModel({
-//     name: {
-//       firstName: name[0],
-//       lastName: name[1],
-//     } as UserName,
-//   });
-//   return user;
-// };
-
-// const createMedia = (name: string[], user: User) => {
-//   const media = new MediaModel({
-//     title: {
-//       romanji: name[0],
-//       english: name[1],
-//       native: name[2],
-//       userPreferred: name[3],
-//     },
-//     releasedDate: {
-//       year: new Date().getFullYear(),
-//       month: new Date().getUTCMonth(),
-//       day: new Date().getUTCDay(),
-//     },
-//     uploadedBy: user,
-//   });
-//   return media;
-// };
-
 main().catch(console.error);
+
+const insertMediaWithRelation = async () => {
+  const media = new MediaModel({
+    title: {
+      userPreferred: "Shingeki no Kyojin",
+      romaji: "Shingeki no Kyojin",
+      english: "Attack on Titan",
+      native: "進撃の巨人",
+    },
+    releasedDate: {
+      year: 2013,
+      month: 4,
+      day: 7,
+    },
+    studios: { nodes: [], edges: [] },
+  });
+  const studios = [
+    {
+      isAnimationStudio: true,
+      name: "Wit Studio",
+    },
+    {
+      isAnimationStudio: false,
+      name: "Poly Canyon",
+    },
+    {
+      isAnimationStudio: false,
+      name: "Kodansha",
+    },
+  ].map((studio, i) => {
+    const s = new StudioModel(studio);
+    const sEdge: StudioEdge = {
+      isMain: i === 0,
+      node: s._id,
+    };
+
+    const mEgde: MediaEdge = {
+      isMain: i === 0,
+      node: media,
+    };
+    s.medias.nodes.push(media);
+    s.medias.edges.push(mEgde);
+    media.studios.nodes.push(s);
+    media.studios.edges.push(sEdge);
+    return s;
+  });
+
+  await StudioModel.insertMany(studios);
+  await media.save();
+};

@@ -1,7 +1,7 @@
-import { modelOptions, mongoose, prop, Ref } from "@typegoose/typegoose";
-import { FuzzyDate } from "../structures/FuzzyDate";
+import { modelOptions, mongoose, prop } from "@typegoose/typegoose";
+import { StudioConnection } from "../structures/StudioConnection";
 import { Field, ObjectType } from "type-graphql";
-import { User } from "./User";
+import { FuzzyDate } from "../structures/FuzzyDate";
 
 @ObjectType()
 export class MediaTitle {
@@ -36,10 +36,13 @@ export class Media {
   @prop({ _id: false })
   public releasedDate!: FuzzyDate;
 
-  @Field(() => User)
+  @Field(() => StudioConnection)
   @prop({
-    ref: () => User,
-    type: mongoose.Schema.Types.ObjectId,
+    _id: false,
+    default: () => ({
+      edges: [],
+      nodes: [],
+    }),
   })
-  public uploadedBy!: Ref<User>;
+  public studios: StudioConnection;
 }
